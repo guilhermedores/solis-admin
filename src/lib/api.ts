@@ -9,7 +9,7 @@ const DEV_TENANT = import.meta.env.VITE_DEV_TENANT || 'demo'
 /**
  * Extrai o subdomínio (tenant) da URL atual
  */
-const getTenantFromUrl = (): string => {
+export const getTenantFromUrl = (): string => {
   const hostname = window.location.hostname
   
   // Para desenvolvimento local (localhost ou 127.0.0.1)
@@ -72,8 +72,8 @@ api.interceptors.response.use(
     if (error.response) {
       console.error(`[API] ✗ ${error.config?.url} - ${error.response.status}`, error.response.data)
       
-      // Se receber 401, redireciona para login
-      if (error.response.status === 401) {
+      // Se receber 401, redireciona para login (exceto se já estiver na página de login)
+      if (error.response.status === 401 && window.location.pathname !== '/login') {
         localStorage.removeItem('auth-token')
         window.location.href = '/login'
       }

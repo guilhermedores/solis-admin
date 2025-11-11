@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../lib/api'
+import { api, getTenantFromUrl } from '../lib/api'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -11,13 +11,13 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
-      const response = await api.post('/auth/login', {
+      const response = await api.post('/api/auth/login', {
         email,
         password,
+        tenant: getTenantFromUrl(),
       })
 
       // Salva o token no localStorage
@@ -26,10 +26,10 @@ export default function Login() {
         navigate('/dashboard')
       }
     } catch (err: any) {
-      setError(
+      const errorMessage = err.response?.data?.error || 
         err.response?.data?.message || 
         'Erro ao fazer login. Verifique suas credenciais.'
-      )
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -75,8 +75,16 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start justify-between animate-shake">
+              <span className="flex-1">{error}</span>
+              <button
+                type="button"
+                onClick={() => setError('')}
+                className="ml-3 text-red-500 hover:text-red-700 font-bold text-lg leading-none flex-shrink-0"
+                aria-label="Fechar"
+              >
+                ×
+              </button>
             </div>
           )}
           
