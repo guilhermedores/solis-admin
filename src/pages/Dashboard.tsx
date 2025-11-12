@@ -1,41 +1,153 @@
-import { useNavigate } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, TrendingUp, Activity, Package } from 'lucide-react'
+import { useAuthStore } from '../stores/auth.store'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../lib/api'
+
+interface DashboardStats {
+  usuarios: {
+    total: number
+    ativos: number
+  }
+  produtos: {
+    total: number
+  }
+  empresas: {
+    total: number
+  }
+}
 
 export default function Dashboard() {
-  const navigate = useNavigate()
+  const { user } = useAuthStore()
 
-  const handleLogout = () => {
-    localStorage.removeItem('auth-token')
-    navigate('/login')
-  }
+  // Busca estatísticas da API
+  const { data: stats, isLoading } = useQuery<DashboardStats>({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const result: DashboardStats = {
+        usuarios: { total: 0, ativos: 0 },
+        produtos: { total: 0 },
+        empresas: { total: 0 },
+      }
+
+      try {
+        // Busca usuários (apenas para admin)
+        if (user?.role === 'admin') {
+          try {
+            const usuariosResponse = await api.get('/api/usuarios')
+            const usuarios = usuariosResponse.data || []
+            result.usuarios.total = usuarios.length
+            result.usuarios.ativos = usuarios.filter((u: any) => u.ativo).length
+          } catch (error) {
+            console.error('Erro ao buscar usuários:', error)
+          }
+        }
+
+        // Busca produtos
+        try {
+          const produtosResponse = await api.get('/api/produtos')
+          result.produtos.total = produtosResponse.data?.length || 0
+        } catch (error) {
+          console.error('Erro ao buscar produtos:', error)
+        }
+
+        // Busca empresas
+        try {
+          const empresasResponse = await api.get('/api/empresas')
+          result.empresas.total = empresasResponse.data?.length || 0
+        } catch (error) {
+          console.error('Erro ao buscar empresas:', error)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas:', error)
+      }
+
+      return result
+    },
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
+  })
+
+  const cards = [
+    {
+      label: 'Total de Vendas',
+      value: 'R$ 0,00',
+      icon: TrendingUp,
+      color: 'from-green-500 to-emerald-600',
+      show: true,
+      loading: false,
+    },
+    {
+      label: 'Usuários Ativos',
+      value: isLoading ? '...' : String(stats?.usuarios.ativos || 0),
+      icon: Users,
+      color: 'from-blue-500 to-indigo-600',
+      show: user?.role === 'admin', // Apenas admin vê este card
+      loading: isLoading,
+    },
+    {
+      label: 'Total de Produtos',
+      value: isLoading ? '...' : String(stats?.produtos.total || 0),
+      icon: Package,
+      color: 'from-purple-500 to-pink-600',
+      show: true,
+      loading: isLoading,
+    },
+    {
+      label: 'Transações Hoje',
+      value: '0',
+      icon: Activity,
+      color: 'from-orange-500 to-red-600',
+      show: true,
+      loading: false,
+    },
+  ]
+
+  const visibleCards = cards.filter(card => card.show)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
-            <h1 className="text-xl sm:text-2xl font-bold">Solis Admin</h1>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base border border-white/30"
-            >
-              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Sair</span>
-            </button>
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div className="flex items-center gap-3">
+          <LayoutDashboard className="w-8 h-8 text-purple-600" />
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              Dashboard
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Bem-vindo, {user?.nome || 'Usuário'}!
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="bg-white rounded-xl shadow-md p-8 sm:p-12 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">
-            Bem-vindo ao Solis Admin
-          </h2>
-          <p className="text-gray-600 text-base sm:text-lg">
-            Página principal - Em construção
-          </p>
-        </div>
-      </main>
+      {/* Cards de estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {visibleCards.map((card, index) => {
+          const Icon = card.icon
+          return (
+            <div
+              key={index}
+              className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{card.label}</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {card.loading ? (
+                      <span className="inline-block animate-pulse">...</span>
+                    ) : (
+                      card.value
+                    )}
+                  </p>
+                </div>
+                <div className={`bg-gradient-to-br ${card.color} p-3 rounded-xl`}>
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
