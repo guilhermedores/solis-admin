@@ -104,9 +104,9 @@ export default function Dashboard() {
   const visibleCards = cards.filter(card => card.show)
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6">
         <div className="flex items-center gap-3">
           <LayoutDashboard className="w-8 h-8 text-purple-600" />
           <div>

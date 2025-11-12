@@ -191,9 +191,9 @@ export default function Produtos() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-2">
@@ -243,8 +243,10 @@ export default function Produtos() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <>
+            {/* Tabela desktop */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -353,16 +355,98 @@ export default function Produtos() {
               </tbody>
             </table>
           </div>
+
+          {/* Cards mobile */}
+          <div className="lg:hidden divide-y divide-gray-200">
+            {produtos.map((product: Produto) => (
+              <div key={product.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{product.nome}</h3>
+                    {product.descricao && (
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{product.descricao}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 ml-2">
+                    <button
+                      onClick={() => openModal(product)}
+                      className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    {deleteConfirm === product.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          className="text-red-600 hover:text-red-900 px-2 py-1 text-xs font-semibold hover:bg-red-50 rounded transition-colors"
+                        >
+                          OK
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(null)}
+                          className="text-gray-600 hover:text-gray-900 px-2 py-1 text-xs font-semibold hover:bg-gray-50 rounded transition-colors"
+                        >
+                          X
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDeleteConfirm(product.id)}
+                        className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {(product.codigo_barras || product.codigo_interno) && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      {product.codigo_barras && (
+                        <div className="flex items-center gap-1">
+                          <Barcode className="w-3 h-3" />
+                          {product.codigo_barras}
+                        </div>
+                      )}
+                      {product.codigo_interno && (
+                        <span className="text-xs">Cód: {product.codigo_interno}</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Unidade: {product.unidade_medida}</span>
+                    <span className="font-semibold text-gray-900">
+                      {formatCurrency(product.preco_venda)}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        product.ativo
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {product.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 
       {/* Modal de cadastro/edição */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-8">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* Header do modal */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                 {editingProduct ? 'Editar Produto' : 'Novo Produto'}
               </h2>
               <button
@@ -374,7 +458,7 @@ export default function Produtos() {
             </div>
 
             {/* Formulário */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
