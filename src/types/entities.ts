@@ -18,10 +18,25 @@ export interface EntityMetadata {
   description: string
   fields: Field[]
   relationships: Relationship[]
+  permissions: Permission[]
   allowCreate: boolean
   allowRead: boolean
   allowUpdate: boolean
   allowDelete: boolean
+}
+
+export interface Permission {
+  id: string
+  entityId: string
+  role: string
+  canCreate: boolean
+  canRead: boolean
+  canUpdate: boolean
+  canDelete: boolean
+  canReadOwnOnly: boolean
+  fieldPermissions: any
+  createdAt: string
+  updatedAt: string
 }
 
 export type DataType = 'string' | 'integer' | 'decimal' | 'boolean' | 'date' | 'datetime' | 'uuid' | 'text'

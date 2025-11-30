@@ -2,6 +2,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Pencil, Trash2, Check, X } from 'lucide-react'
 import { useEntityMetadata } from '../../hooks/useEntityMetadata'
 import { useEntityRecord } from '../../hooks/useEntityData'
+import { useEntityPermissions } from '../../hooks/useEntityPermissions'
 import { api } from '../../lib/api'
 
 export default function EntityDetail() {
@@ -10,6 +11,8 @@ export default function EntityDetail() {
 
   const { data: metadata, isLoading: metadataLoading } = useEntityMetadata(entity!)
   const { data: record, isLoading: recordLoading } = useEntityRecord(entity!, id)
+
+  const permissions = useEntityPermissions(metadata)
 
   const handleDelete = async () => {
     if (!confirm('Tem certeza que deseja deletar este registro?')) return
@@ -67,7 +70,7 @@ export default function EntityDetail() {
           </h1>
         </div>
         <div className="flex gap-2">
-          {metadata.allowUpdate && (
+          {permissions.canUpdate && (
             <Link
               to={`/crud/${entity}/${id}/edit`}
               className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-all flex items-center gap-2"
@@ -76,7 +79,7 @@ export default function EntityDetail() {
               Editar
             </Link>
           )}
-          {metadata.allowDelete && (
+          {permissions.canDelete && (
             <button
               onClick={handleDelete}
               className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-all flex items-center gap-2"

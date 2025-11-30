@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Eye, Pencil, Trash2, Check, X } from 'lucide-react'
 import { useEntityMetadata } from '../../hooks/useEntityMetadata'
 import { useEntityData } from '../../hooks/useEntityData'
+import { useEntityPermissions } from '../../hooks/useEntityPermissions'
 import { api } from '../../lib/api'
 
 export default function EntityTable() {
@@ -22,6 +23,8 @@ export default function EntityTable() {
     orderBy,
     ascending,
   })
+
+  const permissions = useEntityPermissions(metadata)
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja deletar este registro?')) return
@@ -110,7 +113,7 @@ export default function EntityTable() {
           <h1 className="text-3xl font-bold text-gray-800">{metadata.displayName}</h1>
           <p className="text-gray-600 mt-1">{metadata.description}</p>
         </div>
-        {metadata.allowCreate && (
+        {permissions.canCreate && (
           <Link
             to={`/crud/${entity}/new`}
             className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
@@ -179,14 +182,16 @@ export default function EntityTable() {
                     ))}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => navigate(`/crud/${entity}/${record.data.id}`)}
-                          className="text-blue-600 hover:text-blue-900 p-1"
-                          title="Ver detalhes"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        {metadata.allowUpdate && (
+                        {permissions.canRead && (
+                          <button
+                            onClick={() => navigate(`/crud/${entity}/${record.data.id}`)}
+                            className="text-blue-600 hover:text-blue-900 p-1"
+                            title="Ver detalhes"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        )}
+                        {permissions.canUpdate && (
                           <button
                             onClick={() => navigate(`/crud/${entity}/${record.data.id}/edit`)}
                             className="text-yellow-600 hover:text-yellow-900 p-1"
@@ -195,7 +200,7 @@ export default function EntityTable() {
                             <Pencil size={18} />
                           </button>
                         )}
-                        {metadata.allowDelete && (
+                        {permissions.canDelete && (
                           <button
                             onClick={() => handleDelete(record.data.id)}
                             className="text-red-600 hover:text-red-900 p-1"
