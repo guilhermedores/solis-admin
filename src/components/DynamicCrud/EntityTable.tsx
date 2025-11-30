@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Eye, Pencil, Trash2, Check, X } from 'lucide-react'
 import { useEntityMetadata } from '../../hooks/useEntityMetadata'
 import { useEntityData } from '../../hooks/useEntityData'
 import { api } from '../../lib/api'
@@ -21,12 +22,6 @@ export default function EntityTable() {
     orderBy,
     ascending,
   })
-
-  console.log('[EntityTable] Entity:', entity)
-  console.log('[EntityTable] Metadata:', metadata)
-  console.log('[EntityTable] List Data:', listData)
-  console.log('[EntityTable] Data Loading:', dataLoading)
-  console.log('[EntityTable] Error:', error)
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja deletar este registro?')) return
@@ -68,16 +63,41 @@ export default function EntityTable() {
 
   const listFields = metadata.fields
     .filter((f) => f.showInList)
-    .sort((a, b) => a.listOrder - b.listOrder)
+    .sort((a, b) => a.listOrder - b.formOrder)
 
   const records = listData?.data || []
   const pagination = listData?.pagination
+
+  // Função para obter o valor de exibição de um campo
+  const getDisplayValue = (record: any, field: any) => {
+    const fieldValue = record.data[field.name]
+    
+    // Se o campo tem relacionamento, procura pelo campo com sufixo _display
+    if (field.relationship || field.hasRelationship) {
+      const displayFieldName = `${field.name}_display`
+      const displayValue = record.data[displayFieldName]
+      if (displayValue !== undefined && displayValue !== null) {
+        return displayValue
+      }
+    }
+    
+    // Se for booleano, mostrar ícone
+    if (field.dataType === 'boolean') {
+      return fieldValue ? (
+        <Check className="text-green-600" size={18} />
+      ) : (
+        <X className="text-red-600" size={18} />
+      )
+    }
+    
+    return formatFieldValue(fieldValue, field.dataType)
+  }
 
   return (
     <div className="p-6">
       {/* Breadcrumb */}
       <div className="mb-4 text-sm text-gray-600">
-        <Link to="/admin" className="hover:text-purple-600">
+        <Link to="/dashboard" className="hover:text-purple-600">
           Dashboard
         </Link>
         <span className="mx-2">/</span>
@@ -92,7 +112,7 @@ export default function EntityTable() {
         </div>
         {metadata.allowCreate && (
           <Link
-            to={`/admin/${entity}/new`}
+            to={`/crud/${entity}/new`}
             className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
           >
             + Novo
@@ -154,31 +174,34 @@ export default function EntityTable() {
                   <tr key={record.data.id} className="hover:bg-gray-50">
                     {listFields.map((field) => (
                       <td key={field.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatFieldValue(record.data[field.name], field.dataType)}
+                        {getDisplayValue(record, field)}
                       </td>
                     ))}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => navigate(`/admin/${entity}/${record.data.id}`)}
-                          className="text-blue-600 hover:text-blue-900"
+                          onClick={() => navigate(`/crud/${entity}/${record.data.id}`)}
+                          className="text-blue-600 hover:text-blue-900 p-1"
+                          title="Ver detalhes"
                         >
-                          Ver
+                          <Eye size={18} />
                         </button>
                         {metadata.allowUpdate && (
                           <button
-                            onClick={() => navigate(`/admin/${entity}/${record.data.id}/edit`)}
-                            className="text-yellow-600 hover:text-yellow-900"
+                            onClick={() => navigate(`/crud/${entity}/${record.data.id}/edit`)}
+                            className="text-yellow-600 hover:text-yellow-900 p-1"
+                            title="Editar"
                           >
-                            Editar
+                            <Pencil size={18} />
                           </button>
                         )}
                         {metadata.allowDelete && (
                           <button
                             onClick={() => handleDelete(record.data.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 p-1"
+                            title="Deletar"
                           >
-                            Deletar
+                            <Trash2 size={18} />
                           </button>
                         )}
                       </div>

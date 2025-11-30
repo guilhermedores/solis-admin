@@ -34,7 +34,8 @@ export interface Field {
   isRequired: boolean
   isReadOnly: boolean
   showInList: boolean
-  showInForm: boolean
+  showInCreate: boolean
+  showInUpdate: boolean
   showInDetail: boolean
   listOrder: number
   formOrder: number
@@ -42,6 +43,7 @@ export interface Field {
   defaultValue?: any
   hasOptions?: boolean
   hasRelationship?: boolean
+  relationship?: any
   options?: FieldOption[]
   validation?: {
     required?: boolean

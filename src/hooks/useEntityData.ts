@@ -34,9 +34,7 @@ export function useEntityData<T = any>(
         params.append('ascending', ascending.toString())
       }
 
-      console.log(`[useEntityData] Fetching ${entityName} with params:`, params.toString())
       const response = await api.get(`/api/dynamic/${entityName}?${params}`)
-      console.log(`[useEntityData] Response for ${entityName}:`, response.data)
       return response.data
     },
     enabled: !!entityName,
@@ -48,7 +46,8 @@ export function useEntityRecord(entityName: string, recordId: string | undefined
     queryKey: ['entityRecord', entityName, recordId],
     queryFn: async () => {
       const response = await api.get(`/api/dynamic/${entityName}/${recordId}`)
-      return response.data
+      // Se a resposta tem um wrapper { data: ... }, extrair os dados
+      return response.data?.data || response.data
     },
     enabled: !!entityName && !!recordId,
   })

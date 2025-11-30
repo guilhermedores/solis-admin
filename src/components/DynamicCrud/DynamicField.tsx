@@ -18,10 +18,13 @@ export default function DynamicField({
   recordId,
   disabled = false,
 }: DynamicFieldProps) {
+  // Verificar se tem relacionamento pelo objeto relationship ou pelas flags
+  const isRelationshipField = field.hasOptions || field.hasRelationship || !!field.relationship
+  
   const { data: options, isLoading: optionsLoading } = useFieldOptions(
     entityName,
     recordId,
-    field.hasOptions || field.hasRelationship ? field.name : ''
+    isRelationshipField ? field.name : ''
   )
 
   const inputClassName = `w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
@@ -29,7 +32,7 @@ export default function DynamicField({
   }`
 
   // Campos com opções (select/dropdown)
-  if (field.hasOptions || field.hasRelationship) {
+  if (isRelationshipField) {
     if (optionsLoading) {
       return (
         <div className="mb-4">

@@ -12,9 +12,8 @@ export function useFieldOptions(
     queryFn: async () => {
       // Para novos registros, usar ID dummy
       const id = recordId || '00000000-0000-0000-0000-000000000000'
-      const response = await api.get(
-        `/api/dynamic/${entityName}/${id}/options/${fieldName}`
-      )
+      const endpoint = `/api/dynamic/${entityName}/${id}/options/${fieldName}`
+      const response = await api.get(endpoint)
       return response.data
     },
     enabled: !!entityName && !!fieldName,

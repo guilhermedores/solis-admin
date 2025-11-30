@@ -53,19 +53,7 @@ function AppRoutes() {
       
       {/* Dynamic CRUD - Rotas genéricas para todas as entidades */}
       
-      {/* Lista */}
-      <Route 
-        path="/crud/:entity" 
-        element={
-          <PrivateRoute>
-            <Layout>
-              <EntityPage />
-            </Layout>
-          </PrivateRoute>
-        } 
-      />
-      
-      {/* Novo registro */}
+      {/* Novo registro - DEVE VIR ANTES da rota de detalhes */}
       <Route 
         path="/crud/:entity/new" 
         element={
@@ -77,7 +65,7 @@ function AppRoutes() {
         } 
       />
       
-      {/* Editar registro */}
+      {/* Editar registro - DEVE VIR ANTES da rota de detalhes */}
       <Route 
         path="/crud/:entity/:id/edit" 
         element={
@@ -89,13 +77,25 @@ function AppRoutes() {
         } 
       />
       
-      {/* Ver detalhes */}
+      {/* Ver detalhes - Rota genérica que pega qualquer ID */}
       <Route 
         path="/crud/:entity/:id" 
         element={
           <PrivateRoute>
             <Layout>
               <EntityDetail />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Lista */}
+      <Route 
+        path="/crud/:entity" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <EntityPage />
             </Layout>
           </PrivateRoute>
         } 

@@ -1,4 +1,5 @@
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Pencil, Trash2, Check, X } from 'lucide-react'
 import { useEntityMetadata } from '../../hooks/useEntityMetadata'
 import { useEntityRecord } from '../../hooks/useEntityData'
 import { api } from '../../lib/api'
@@ -16,7 +17,7 @@ export default function EntityDetail() {
     try {
       await api.delete(`/api/dynamic/${entity}/${id}`)
       alert('Registro deletado com sucesso!')
-      navigate(`/admin/${entity}`)
+      navigate(`/crud/${entity}`)
     } catch (error) {
       alert('Erro ao deletar registro')
       console.error(error)
@@ -47,11 +48,11 @@ export default function EntityDetail() {
     <div className="p-6">
       {/* Breadcrumb */}
       <div className="mb-4 text-sm text-gray-600">
-        <Link to="/admin" className="hover:text-purple-600">
+        <Link to="/dashboard" className="hover:text-purple-600">
           Dashboard
         </Link>
         <span className="mx-2">/</span>
-        <Link to={`/admin/${entity}`} className="hover:text-purple-600">
+        <Link to={`/crud/${entity}`} className="hover:text-purple-600">
           {metadata.displayName}
         </Link>
         <span className="mx-2">/</span>
@@ -68,17 +69,19 @@ export default function EntityDetail() {
         <div className="flex gap-2">
           {metadata.allowUpdate && (
             <Link
-              to={`/admin/${entity}/${id}/edit`}
-              className="bg-yellow-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-all"
+              to={`/crud/${entity}/${id}/edit`}
+              className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-all flex items-center gap-2"
             >
+              <Pencil size={18} />
               Editar
             </Link>
           )}
           {metadata.allowDelete && (
             <button
               onClick={handleDelete}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-600 transition-all"
+              className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-all flex items-center gap-2"
             >
+              <Trash2 size={18} />
               Deletar
             </button>
           )}
@@ -88,24 +91,51 @@ export default function EntityDetail() {
       {/* Detail View */}
       <div className="bg-white rounded-lg shadow p-6 max-w-4xl">
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {detailFields.map((field) => (
-            <div
-              key={field.id}
-              className={field.dataType === 'text' ? 'md:col-span-2' : ''}
-            >
-              <dt className="text-sm font-medium text-gray-500 mb-1">
-                {field.displayName}
-              </dt>
-              <dd className="text-base text-gray-900">
-                {formatFieldValue(record[field.name], field.dataType)}
-              </dd>
-            </div>
-          ))}
+          {detailFields.map((field) => {
+            // Verificar se é um campo de relacionamento e se existe o campo _display
+            const isRelationship = field.relationship || field.hasRelationship
+            const displayField = `${field.name}_display`
+            const displayValue = isRelationship && record[displayField] 
+              ? record[displayField] 
+              : record[field.name]
+
+            // Se for booleano, mostrar ícone
+            let renderedValue
+            if (field.dataType === 'boolean') {
+              renderedValue = displayValue ? (
+                <div className="flex items-center gap-2">
+                  <Check className="text-green-600" size={20} />
+                  <span>Sim</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <X className="text-red-600" size={20} />
+                  <span>Não</span>
+                </div>
+              )
+            } else {
+              renderedValue = formatFieldValue(displayValue, field.dataType)
+            }
+
+            return (
+              <div
+                key={field.id}
+                className={field.dataType === 'text' ? 'md:col-span-2' : ''}
+              >
+                <dt className="text-sm font-medium text-gray-500 mb-1">
+                  {field.displayName}
+                </dt>
+                <dd className="text-base text-gray-900">
+                  {renderedValue}
+                </dd>
+              </div>
+            )
+          })}
         </dl>
 
         <div className="mt-8">
           <Link
-            to={`/admin/${entity}`}
+            to={`/crud/${entity}`}
             className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-all inline-block"
           >
             Voltar para lista

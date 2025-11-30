@@ -45,13 +45,12 @@ export default function EntityForm() {
       if (isEdit) {
         await api.put(`/api/dynamic/${entity}/${id}`, formData)
         alert('Registro atualizado com sucesso!')
+        navigate(`/crud/${entity}/${id}`)
       } else {
         const response = await api.post(`/api/dynamic/${entity}`, formData)
         alert('Registro criado com sucesso!')
-        navigate(`/admin/${entity}/${response.data.id}`)
-        return
+        navigate(`/crud/${entity}/${response.data.id}`)
       }
-      navigate(`/admin/${entity}/${id}`)
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.error ||
@@ -87,19 +86,20 @@ export default function EntityForm() {
     )
   }
 
+  // Usar showInCreate para novos registros e showInUpdate para edição
   const formFields = metadata.fields
-    .filter((f) => f.showInForm)
+    .filter((f) => isEdit ? f.showInUpdate : f.showInCreate)
     .sort((a, b) => a.formOrder - b.formOrder)
 
   return (
     <div className="p-6">
       {/* Breadcrumb */}
       <div className="mb-4 text-sm text-gray-600">
-        <Link to="/admin" className="hover:text-purple-600">
+        <Link to="/dashboard" className="hover:text-purple-600">
           Dashboard
         </Link>
         <span className="mx-2">/</span>
-        <Link to={`/admin/${entity}`} className="hover:text-purple-600">
+        <Link to={`/crud/${entity}`} className="hover:text-purple-600">
           {metadata.displayName}
         </Link>
         <span className="mx-2">/</span>
@@ -158,7 +158,7 @@ export default function EntityForm() {
               {loading ? 'Salvando...' : 'Salvar'}
             </button>
             <Link
-              to={`/admin/${entity}`}
+              to={`/crud/${entity}`}
               className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-all"
             >
               Cancelar
