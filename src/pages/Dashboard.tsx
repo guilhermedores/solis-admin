@@ -29,37 +29,8 @@ export default function Dashboard() {
         empresas: { total: 0 },
       }
 
-      try {
-        // Busca usuários (apenas para admin)
-        if (user?.role === 'admin') {
-          try {
-            const usuariosResponse = await api.get('/api/usuarios')
-            const usuarios = usuariosResponse.data || []
-            result.usuarios.total = usuarios.length
-            result.usuarios.ativos = usuarios.filter((u: any) => u.ativo).length
-          } catch (error) {
-            console.error('Erro ao buscar usuários:', error)
-          }
-        }
-
-        // Busca produtos
-        try {
-          const produtosResponse = await api.get('/api/produtos')
-          result.produtos.total = produtosResponse.data?.length || 0
-        } catch (error) {
-          console.error('Erro ao buscar produtos:', error)
-        }
-
-        // Busca empresas
-        try {
-          const empresasResponse = await api.get('/api/empresas')
-          result.empresas.total = empresasResponse.data?.length || 0
-        } catch (error) {
-          console.error('Erro ao buscar empresas:', error)
-        }
-      } catch (error) {
-        console.error('Erro ao buscar estatísticas:', error)
-      }
+      // TODO: Implementar quando os endpoints estiverem disponíveis
+      // Por enquanto retorna valores padrão
 
       return result
     },
@@ -68,37 +39,13 @@ export default function Dashboard() {
 
   const cards = [
     {
-      label: 'Total de Vendas',
-      value: 'R$ 0,00',
-      icon: TrendingUp,
-      color: 'from-green-500 to-emerald-600',
-      show: true,
-      loading: false,
-    },
-    {
       label: 'Usuários Ativos',
       value: isLoading ? '...' : String(stats?.usuarios.ativos || 0),
       icon: Users,
       color: 'from-blue-500 to-indigo-600',
       show: user?.role === 'admin', // Apenas admin vê este card
       loading: isLoading,
-    },
-    {
-      label: 'Total de Produtos',
-      value: isLoading ? '...' : String(stats?.produtos.total || 0),
-      icon: Package,
-      color: 'from-purple-500 to-pink-600',
-      show: true,
-      loading: isLoading,
-    },
-    {
-      label: 'Transações Hoje',
-      value: '0',
-      icon: Activity,
-      color: 'from-orange-500 to-red-600',
-      show: true,
-      loading: false,
-    },
+    }
   ]
 
   const visibleCards = cards.filter(card => card.show)

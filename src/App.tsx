@@ -5,12 +5,14 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 // Pages
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
-import Usuarios from './pages/Usuarios'
-import Produtos from './pages/Produtos'
+
+// Dynamic CRUD Components
+import EntityForm from './components/DynamicCrud/EntityForm'
+import EntityDetail from './components/DynamicCrud/EntityDetail'
+import EntityPage from './components/DynamicCrud/EntityPage'
 
 // Components
 import PrivateRoute from './components/PrivateRoute'
-import RoleGuard from './components/RoleGuard'
 import Layout from './components/Layout'
 
 // Hooks
@@ -49,28 +51,52 @@ function AppRoutes() {
         } 
       />
       
-      {/* Rota de produtos */}
+      {/* Dynamic CRUD - Rotas genéricas para todas as entidades */}
+      
+      {/* Lista */}
       <Route 
-        path="/produtos" 
+        path="/crud/:entity" 
         element={
           <PrivateRoute>
             <Layout>
-              <Produtos />
+              <EntityPage />
             </Layout>
           </PrivateRoute>
         } 
       />
       
-      {/* Rota de usuários - apenas admin */}
+      {/* Novo registro */}
       <Route 
-        path="/usuarios" 
+        path="/crud/:entity/new" 
         element={
           <PrivateRoute>
-            <RoleGuard allowedRoles={['admin']}>
-              <Layout>
-                <Usuarios />
-              </Layout>
-            </RoleGuard>
+            <Layout>
+              <EntityForm />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Editar registro */}
+      <Route 
+        path="/crud/:entity/:id/edit" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <EntityForm />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Ver detalhes */}
+      <Route 
+        path="/crud/:entity/:id" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <EntityDetail />
+            </Layout>
           </PrivateRoute>
         } 
       />

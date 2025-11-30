@@ -28,7 +28,6 @@ export default function Login() {
       const response = await api.post('/api/auth/login', {
         email,
         password,
-        tenant: getTenantFromUrl(),
       })
 
       console.log('Login response:', response.data)

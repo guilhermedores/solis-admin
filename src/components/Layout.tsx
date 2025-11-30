@@ -7,12 +7,24 @@ import {
   X, 
   LogOut,
   ChevronLeft,
-  Package
+  Database,
+  Building,
+  FileText,
+  Shield
 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
+import { useEntities } from '../hooks/useEntities'
 
 interface LayoutProps {
   children: React.ReactNode
+}
+
+// Mapear ícones das entidades (fora do componente para evitar recriação)
+const entityIcons: Record<string, any> = {
+  user: Users,
+  company: Building,
+  tax_regime: FileText,
+  special_tax_regime: Shield,
 }
 
 export default function Layout({ children }: LayoutProps) {
@@ -25,36 +37,39 @@ export default function Layout({ children }: LayoutProps) {
   const user = useAuthStore((state) => state.user)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
-  // Debug: mostrar dados do usuário
-  console.log('Layout render - User:', user)
-  console.log('Layout render - User Role:', user?.role)
-
   const handleLogout = () => {
     clearAuth()
     navigate('/login')
   }
 
-  // Usa useMemo para recalcular menuItems quando user mudar
-  const menuItems = useMemo(() => [
-    { 
-      name: 'Dashboard', 
-      icon: LayoutDashboard, 
-      path: '/dashboard',
-      show: true 
-    },
-    { 
-      name: 'Produtos', 
-      icon: Package, 
-      path: '/produtos',
-      show: true 
-    },
-    { 
-      name: 'Usuários', 
-      icon: Users, 
-      path: '/usuarios',
-      show: user?.role === 'admin' // Apenas admin vê o menu
-    },
-  ], [user?.role]) // Recalcula quando user.role mudar
+  // Buscar entidades disponíveis
+  const { data: entitiesResponse, isLoading: loadingEntities, error: entitiesError } = useEntities()
+
+  // Usa useMemo para recalcular menuItems quando entidades mudarem
+  const menuItems = useMemo(() => {
+    const items = [
+      { 
+        name: 'Dashboard', 
+        icon: LayoutDashboard, 
+        path: '/dashboard',
+        show: true 
+      }
+    ]
+
+    // Adicionar itens de menu para cada entidade
+    if (entitiesResponse?.entities && Array.isArray(entitiesResponse.entities)) {
+      entitiesResponse.entities.forEach((entity) => {
+        items.push({
+          name: entity.displayName || entity.name,
+          icon: entityIcons[entity.name] || Database,
+          path: `/crud/${entity.name}`,
+          show: true
+        })
+      })
+    }
+
+    return items
+  }, [entitiesResponse])
 
   const visibleMenuItems = menuItems.filter(item => item.show)
 
@@ -85,6 +100,16 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Menu de navegação */}
         <nav className="flex-1 p-4 space-y-2">
+          {loadingEntities && visibleMenuItems.length === 1 && (
+            <div className="px-4 py-3 text-sm text-white/60">
+              Carregando menu...
+            </div>
+          )}
+          {entitiesError && visibleMenuItems.length === 1 && (
+            <div className="px-4 py-3 text-xs text-red-300">
+              ⚠️ API não disponível
+            </div>
+          )}
           {visibleMenuItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path

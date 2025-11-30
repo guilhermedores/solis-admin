@@ -41,11 +41,14 @@ export const api = axios.create({
 // Interceptor para requests - adiciona x-tenant e token
 api.interceptors.request.use(
   (config) => {
-    // Adiciona o header x-tenant
+    // Adiciona o header x-tenant (mantido para compatibilidade)
     const tenant = getTenantFromUrl()
     if (tenant) {
       config.headers['x-tenant'] = tenant
     }
+    
+    // Adiciona X-Tenant-Subdomain (usado pela nova API)
+    config.headers['X-Tenant-Subdomain'] = tenant || 'demo'
     
     // Adiciona o token de autenticação se existir
     const token = localStorage.getItem('auth-token')
