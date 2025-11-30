@@ -1,5 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Pencil, Trash2, Check, X } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEntityMetadata } from '../../hooks/useEntityMetadata'
 import { useEntityRecord } from '../../hooks/useEntityData'
 import { useEntityPermissions } from '../../hooks/useEntityPermissions'
@@ -8,6 +9,7 @@ import { api } from '../../lib/api'
 export default function EntityDetail() {
   const { entity, id } = useParams<{ entity: string; id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const { data: metadata, isLoading: metadataLoading } = useEntityMetadata(entity!)
   const { data: record, isLoading: recordLoading } = useEntityRecord(entity!, id)
@@ -19,6 +21,8 @@ export default function EntityDetail() {
 
     try {
       await api.delete(`/api/dynamic/${entity}/${id}`)
+      // Invalidar cache para recarregar lista
+      queryClient.invalidateQueries({ queryKey: ['entityData', entity] })
       alert('Registro deletado com sucesso!')
       navigate(`/crud/${entity}`)
     } catch (error) {

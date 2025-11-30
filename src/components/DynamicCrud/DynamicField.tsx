@@ -53,7 +53,11 @@ export default function DynamicField({
         </label>
         <select
           value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const selectedValue = e.target.value
+            // Se vazio, enviar null. Se for UUID, manter como string
+            onChange(selectedValue === '' ? null : selectedValue)
+          }}
           required={field.isRequired}
           disabled={disabled || field.isReadOnly}
           className={inputClassName}

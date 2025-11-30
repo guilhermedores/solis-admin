@@ -10,7 +10,7 @@ export default function EntityTable() {
   const { entity } = useParams<{ entity: string }>()
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(20)
+  const [pageSize] = useState(50)
   const [search, setSearch] = useState('')
   const [orderBy, setOrderBy] = useState('')
   const [ascending, setAscending] = useState(true)

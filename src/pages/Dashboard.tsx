@@ -1,54 +1,73 @@
-import { LayoutDashboard, Users, TrendingUp, Activity, Package } from 'lucide-react'
+import { LayoutDashboard, Users, Building, FileText, Shield, Database } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth.store'
 import { useQuery } from '@tanstack/react-query'
+import { useEntities } from '../hooks/useEntities'
 import { api } from '../lib/api'
 
-interface DashboardStats {
-  usuarios: {
-    total: number
-    ativos: number
-  }
-  produtos: {
-    total: number
-  }
-  empresas: {
-    total: number
-  }
+interface EntityStats {
+  [entityName: string]: number
 }
 
 export default function Dashboard() {
   const { user } = useAuthStore()
+  const { data: entitiesResponse, isLoading: entitiesLoading } = useEntities()
 
-  // Busca estatísticas da API
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
-    queryKey: ['dashboard-stats'],
+  // Busca contadores de cada entidade
+  const { data: stats, isLoading: statsLoading } = useQuery<EntityStats>({
+    queryKey: ['dashboard-entity-stats'],
     queryFn: async () => {
-      const result: DashboardStats = {
-        usuarios: { total: 0, ativos: 0 },
-        produtos: { total: 0 },
-        empresas: { total: 0 },
-      }
+      if (!entitiesResponse?.entities) return {}
 
-      // TODO: Implementar quando os endpoints estiverem disponíveis
-      // Por enquanto retorna valores padrão
+      const statsPromises = entitiesResponse.entities.map(async (entity) => {
+        try {
+          // Buscar apenas registros ativos (active=true)
+          const response = await api.get(`/api/dynamic/${entity.name}?page=1&pageSize=1&active=true`)
+          return {
+            name: entity.name,
+            count: response.data?.pagination?.totalCount || 0,
+          }
+        } catch (error) {
+          console.error(`Error fetching stats for ${entity.name}:`, error)
+          return { name: entity.name, count: 0 }
+        }
+      })
 
-      return result
+      const results = await Promise.all(statsPromises)
+      return results.reduce((acc, { name, count }) => {
+        acc[name] = count
+        return acc
+      }, {} as EntityStats)
     },
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    enabled: !!entitiesResponse?.entities && entitiesResponse.entities.length > 0,
+    refetchInterval: 60000, // Atualiza a cada 60 segundos
   })
 
-  const cards = [
-    {
-      label: 'Usuários Ativos',
-      value: isLoading ? '...' : String(stats?.usuarios.ativos || 0),
-      icon: Users,
-      color: 'from-blue-500 to-indigo-600',
-      show: user?.role === 'admin', // Apenas admin vê este card
-      loading: isLoading,
-    }
-  ]
+  // Mapa de ícones por entidade
+  const entityIcons: Record<string, any> = {
+    users: Users,
+    usuarios: Users,
+    companies: Building,
+    empresas: Building,
+    tax_regimes: FileText,
+    regimes_tributarios: FileText,
+    roles: Shield,
+    funcoes: Shield,
+  }
 
-  const visibleCards = cards.filter(card => card.show)
+  // Mapa de cores por entidade
+  const entityColors: Record<string, string> = {
+    users: 'from-blue-500 to-indigo-600',
+    usuarios: 'from-blue-500 to-indigo-600',
+    companies: 'from-green-500 to-emerald-600',
+    empresas: 'from-green-500 to-emerald-600',
+    tax_regimes: 'from-purple-500 to-violet-600',
+    regimes_tributarios: 'from-purple-500 to-violet-600',
+    roles: 'from-orange-500 to-amber-600',
+    funcoes: 'from-orange-500 to-amber-600',
+  }
+
+  const isLoading = entitiesLoading || statsLoading
 
   return (
     <div>
@@ -69,31 +88,35 @@ export default function Dashboard() {
 
       {/* Cards de estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {visibleCards.map((card, index) => {
-          const Icon = card.icon
-          return (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">{card.label}</p>
-                  <p className="text-2xl font-bold text-gray-800">
-                    {card.loading ? (
-                      <span className="inline-block animate-pulse">...</span>
-                    ) : (
-                      card.value
-                    )}
-                  </p>
+        {isLoading ? (
+          <div className="col-span-full text-center text-gray-500 py-8">
+            Carregando estatísticas...
+          </div>
+        ) : (
+          entitiesResponse?.entities.map((entity) => {
+            const Icon = entityIcons[entity.name] || Database
+            const color = entityColors[entity.name] || 'from-gray-500 to-slate-600'
+            const count = stats?.[entity.name] || 0
+
+            return (
+              <Link
+                key={entity.name}
+                to={`/crud/${entity.name}`}
+                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all hover:scale-105"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{entity.displayName}</p>
+                    <p className="text-2xl font-bold text-gray-800">{count}</p>
+                  </div>
+                  <div className={`bg-gradient-to-br ${color} p-3 rounded-xl`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div className={`bg-gradient-to-br ${card.color} p-3 rounded-xl`}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </div>
-          )
-        })}
+              </Link>
+            )
+          })
+        )}
       </div>
     </div>
   )

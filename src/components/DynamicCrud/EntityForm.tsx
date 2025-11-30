@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useEntityMetadata } from '../../hooks/useEntityMetadata'
 import { useEntityRecord } from '../../hooks/useEntityData'
 import { api } from '../../lib/api'
@@ -8,6 +9,7 @@ import DynamicField from './DynamicField'
 export default function EntityForm() {
   const { entity, id } = useParams<{ entity: string; id?: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const isEdit = !!id
 
   const { data: metadata, isLoading: metadataLoading } = useEntityMetadata(entity!)
@@ -36,38 +38,74 @@ export default function EntityForm() {
     }
   }, [record, isEdit])
 
+  const handleFieldChange = (fieldName: string, value: any) => {
+    console.log('[EntityForm] Field change:', fieldName, '=', value)
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [fieldName]: value,
+      }
+      console.log('[EntityForm] New formData:', newData)
+      return newData
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
+    // Limpar campos _display e outros campos não editáveis do payload
+    const cleanedData: Record<string, any> = {}
+    metadata.fields.forEach((field) => {
+      const fieldName = field.name
+      // Incluir apenas campos que existem no formData e não são _display
+      if (fieldName in formData && !fieldName.endsWith('_display')) {
+        let value = formData[fieldName]
+        
+        // Para campos UUID vazios, enviar null ao invés de string vazia
+        if (field.dataType === 'uuid' && value === '') {
+          value = null
+        }
+        
+        // Não enviar campos undefined
+        if (value !== undefined) {
+          cleanedData[fieldName] = value
+        }
+      }
+    })
+
+    console.log('[EntityForm] Submitting formData:', cleanedData)
+
     try {
       if (isEdit) {
-        await api.put(`/api/dynamic/${entity}/${id}`, formData)
+        await api.put(`/api/dynamic/${entity}/${id}`, cleanedData)
+        // Invalidar cache para recarregar dados
+        queryClient.invalidateQueries({ queryKey: ['entityRecord', entity, id] })
+        queryClient.invalidateQueries({ queryKey: ['entityData', entity] })
         alert('Registro atualizado com sucesso!')
         navigate(`/crud/${entity}/${id}`)
       } else {
-        const response = await api.post(`/api/dynamic/${entity}`, formData)
+        const response = await api.post(`/api/dynamic/${entity}`, cleanedData)
+        // Invalidar cache da lista
+        queryClient.invalidateQueries({ queryKey: ['entityData', entity] })
         alert('Registro criado com sucesso!')
-        navigate(`/crud/${entity}/${response.data.id}`)
+        // A resposta pode vir como { id: ... } ou { data: { id: ... } }
+        const recordId = response.data?.id || response.data?.data?.id
+        navigate(`/crud/${entity}/${recordId}`)
       }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.error ||
         err.response?.data?.message ||
+        err.response?.data?.title ||
         'Erro ao salvar registro'
       setError(errorMessage)
-      console.error(err)
+      console.error('Error saving record:', err)
+      console.error('Error response:', err.response?.data)
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleFieldChange = (fieldName: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: value,
-    }))
   }
 
   if (metadataLoading || (isEdit && recordLoading)) {
