@@ -1,43 +1,53 @@
-# =============================================================================
-# Dockerfile para App Admin (React/Vue/Angular com Nginx)
-# =============================================================================
+# Dockerfile para solis-admin (Frontend Next.js/React)
 
-# =============================================================================
-# Stage: Build
-# =============================================================================
-FROM node:24-alpine AS build
+FROM node:24-alpine AS base
+
+# Instalar dependências necessárias
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Copiar arquivos de dependências
-COPY package*.json ./
-
 # Instalar dependências
+FROM base AS dependencies
+COPY package*.json ./
 RUN npm ci
 
-# Copiar código fonte
+# Build da aplicação
+FROM base AS builder
+WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
-# Build da aplicação
+# Variáveis de ambiente de build (se necessário)
+# ENV NEXT_PUBLIC_API_URL=https://api.example.com
+
+# Build Next.js
 RUN npm run build
 
-# =============================================================================
-# Stage: Production
-# =============================================================================
-FROM nginx:alpine AS production
+# Imagem de produção
+FROM base AS runner
+WORKDIR /app
 
-# Copiar configuração customizada do Nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+# Criar usuário não-root para segurança
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Copiar arquivos buildados (Vite gera na pasta dist)
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copiar arquivos necessários
+COPY --from=builder /app/public ./public
 
-# Expor porta
-EXPOSE 80
+# Copiar build output
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
+USER nextjs
 
-# Iniciar Nginx
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+CMD ["node", "server.js"]
