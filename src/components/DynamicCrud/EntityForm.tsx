@@ -57,7 +57,7 @@ export default function EntityForm() {
 
     // Limpar campos _display e outros campos não editáveis do payload
     const cleanedData: Record<string, any> = {}
-    metadata.fields.forEach((field) => {
+    metadata?.fields.forEach((field) => {
       const fieldName = field.name
       // Incluir apenas campos que existem no formData e não são _display
       if (fieldName in formData && !fieldName.endsWith('_display')) {

@@ -5,7 +5,7 @@
 # =============================================================================
 # Stage: Build
 # =============================================================================
-FROM node:18-alpine AS build
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
@@ -29,10 +29,8 @@ FROM nginx:alpine AS production
 # Copiar configuração customizada do Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copiar arquivos buildados
-COPY --from=build /app/build /usr/share/nginx/html
-# Para Vue.js use: COPY --from=build /app/dist /usr/share/nginx/html
-# Para Angular use: COPY --from=build /app/dist/app-admin /usr/share/nginx/html
+# Copiar arquivos buildados (Vite gera na pasta dist)
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Criar usuário não-root
 RUN addgroup -g 1001 -S nginx && \

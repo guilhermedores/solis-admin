@@ -16,7 +16,7 @@ export default function EntityTable() {
   const [ascending, setAscending] = useState(true)
 
   const { data: metadata, isLoading: metadataLoading } = useEntityMetadata(entity!)
-  const { data: listData, isLoading: dataLoading, refetch, error } = useEntityData(entity!, {
+  const { data: listData, isLoading: dataLoading, refetch } = useEntityData(entity!, {
     page,
     pageSize,
     search,
