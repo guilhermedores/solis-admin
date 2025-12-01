@@ -27,9 +27,9 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Expor porta 3000
 EXPOSE 3000
 
-# Health check
+# Health check (verificar se nginx está respondendo)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
 # Iniciar Nginx
 CMD ["nginx", "-g", "daemon off;"]
