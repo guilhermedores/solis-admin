@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Field } from '../../types/entities'
 import { useFieldOptions } from '../../hooks/useFieldOptions'
 
@@ -26,6 +27,13 @@ export default function DynamicField({
     recordId,
     isRelationshipField ? field.name : ''
   )
+
+  // Auto-selecionar quando houver apenas uma opção disponível
+  useEffect(() => {
+    if (isRelationshipField && options && options.length === 1 && !value && !disabled && !field.isReadOnly) {
+      onChange(options[0].value)
+    }
+  }, [options, value, isRelationshipField, disabled, field.isReadOnly, onChange])
 
   const inputClassName = `w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
     field.validation?.required ? 'required' : ''
