@@ -86,38 +86,57 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Cards de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {isLoading ? (
-          <div className="col-span-full text-center text-gray-500 py-8">
-            Carregando estatísticas...
-          </div>
-        ) : (
-          entitiesResponse?.entities.map((entity) => {
-            const Icon = entityIcons[entity.name] || Database
-            const color = entityColors[entity.name] || 'from-gray-500 to-slate-600'
-            const count = stats?.[entity.name] || 0
+      {/* Cards de estatísticas agrupados por categoria */}
+      {isLoading ? (
+        <div className="text-center text-gray-500 py-8">
+          Carregando estatísticas...
+        </div>
+      ) : (
+        <>
+          {Object.entries(
+            entitiesResponse?.entities.reduce((acc, entity) => {
+              const category = entity.category || 'Outros'
+              if (!acc[category]) acc[category] = []
+              acc[category].push(entity)
+              return acc
+            }, {} as Record<string, typeof entitiesResponse.entities>) || {}
+          )
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([category, entities]) => (
+              <div key={category} className="mb-8">
+                <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-purple-600 rounded"></div>
+                  {category}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {entities.map((entity) => {
+                    const Icon = entityIcons[entity.name] || Database
+                    const color = entityColors[entity.name] || 'from-gray-500 to-slate-600'
+                    const count = stats?.[entity.name] || 0
 
-            return (
-              <Link
-                key={entity.name}
-                to={`/crud/${entity.name}`}
-                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all hover:scale-105"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{entity.displayName}</p>
-                    <p className="text-2xl font-bold text-gray-800">{count}</p>
-                  </div>
-                  <div className={`bg-gradient-to-br ${color} p-3 rounded-xl`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
+                    return (
+                      <Link
+                        key={entity.name}
+                        to={`/crud/${entity.name}`}
+                        className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all hover:scale-105"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">{entity.displayName}</p>
+                            <p className="text-2xl font-bold text-gray-800">{count}</p>
+                          </div>
+                          <div className={`bg-gradient-to-br ${color} p-3 rounded-xl`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
                 </div>
-              </Link>
-            )
-          })
-        )}
-      </div>
+              </div>
+            ))}
+        </>
+      )}
     </div>
   )
 }

@@ -29,6 +29,8 @@ services:
     labels:
       - "com.solis.service=admin-frontend"
       - "com.solis.description=Admin Frontend Application"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # ===========================================================================
   # Development Service (opcional - para desenvolvimento)

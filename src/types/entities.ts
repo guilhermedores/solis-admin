@@ -3,6 +3,7 @@ export interface Entity {
   displayName: string
   icon: string
   description: string
+  category: string
   allowCreate: boolean
   allowRead: boolean
   allowUpdate: boolean

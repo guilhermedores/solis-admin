@@ -7,6 +7,8 @@ import {
   X, 
   LogOut,
   ChevronLeft,
+  ChevronDown,
+  ChevronRight,
   Database,
   Building,
   FileText,
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useEntities } from '../hooks/useEntities'
+import { Entity } from '../types/entities'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -30,6 +33,7 @@ const entityIcons: Record<string, any> = {
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
   const location = useLocation()
   const navigate = useNavigate()
   
@@ -45,33 +49,40 @@ export default function Layout({ children }: LayoutProps) {
   // Buscar entidades disponíveis
   const { data: entitiesResponse, isLoading: loadingEntities, error: entitiesError } = useEntities()
 
-  // Usa useMemo para recalcular menuItems quando entidades mudarem
-  const menuItems = useMemo(() => {
-    const items = [
-      { 
-        name: 'Dashboard', 
-        icon: LayoutDashboard, 
-        path: '/dashboard',
-        show: true 
-      }
-    ]
-
-    // Adicionar itens de menu para cada entidade
-    if (entitiesResponse?.entities && Array.isArray(entitiesResponse.entities)) {
-      entitiesResponse.entities.forEach((entity) => {
-        items.push({
-          name: entity.displayName || entity.name,
-          icon: entityIcons[entity.name] || Database,
-          path: `/crud/${entity.name}`,
-          show: true
-        })
-      })
+  // Agrupar entidades por categoria
+  const groupedEntities = useMemo(() => {
+    if (!entitiesResponse?.entities || !Array.isArray(entitiesResponse.entities)) {
+      return {}
     }
 
-    return items
+    const grouped: Record<string, Entity[]> = {}
+    
+    entitiesResponse.entities.forEach((entity) => {
+      const category = entity.category || 'Outros'
+      if (!grouped[category]) {
+        grouped[category] = []
+      }
+      grouped[category].push(entity)
+    })
+
+    // Ordenar categorias alfabeticamente
+    const sortedGrouped: Record<string, Entity[]> = {}
+    Object.keys(grouped)
+      .sort()
+      .forEach((key) => {
+        sortedGrouped[key] = grouped[key]
+      })
+
+    return sortedGrouped
   }, [entitiesResponse])
 
-  const visibleMenuItems = menuItems.filter(item => item.show)
+  // Toggle categoria
+  const toggleCategory = (category: string) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }))
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,35 +110,86 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Menu de navegação */}
-        <nav className="flex-1 p-4 space-y-2">
-          {loadingEntities && visibleMenuItems.length === 1 && (
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {/* Dashboard */}
+          <Link
+            to="/dashboard"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              location.pathname === '/dashboard'
+                ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                : 'hover:bg-white/10'
+            }`}
+            title={sidebarCollapsed ? 'Dashboard' : undefined}
+          >
+            <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && <span>Dashboard</span>}
+          </Link>
+
+          {/* Loading state */}
+          {loadingEntities && Object.keys(groupedEntities).length === 0 && (
             <div className="px-4 py-3 text-sm text-white/60">
               Carregando menu...
             </div>
           )}
-          {entitiesError && visibleMenuItems.length === 1 && (
+
+          {/* Error state */}
+          {entitiesError && Object.keys(groupedEntities).length === 0 && (
             <div className="px-4 py-3 text-xs text-red-300">
               ⚠️ API não disponível
             </div>
           )}
-          {visibleMenuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path
-            
+
+          {/* Entidades agrupadas por categoria */}
+          {Object.entries(groupedEntities).map(([category, entities]) => {
+            const isExpanded = expandedCategories[category] !== false // Expandido por padrão
+
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive
-                    ? 'bg-white text-purple-700 font-semibold shadow-lg'
-                    : 'hover:bg-white/10'
-                }`}
-                title={sidebarCollapsed ? item.name : undefined}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                {!sidebarCollapsed && <span>{item.name}</span>}
-              </Link>
+              <div key={category} className="space-y-1">
+                {/* Cabeçalho da categoria */}
+                {!sidebarCollapsed ? (
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <span>{category}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
+                ) : (
+                  <div className="h-px bg-white/20 my-2" />
+                )}
+
+                {/* Itens da categoria */}
+                {(isExpanded || sidebarCollapsed) && (
+                  <div className="space-y-1">
+                    {entities.map((entity) => {
+                      const Icon = entityIcons[entity.name] || Database
+                      const isActive = location.pathname === `/crud/${entity.name}`
+
+                      return (
+                        <Link
+                          key={entity.name}
+                          to={`/crud/${entity.name}`}
+                          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
+                            sidebarCollapsed ? '' : 'ml-2'
+                          } ${
+                            isActive
+                              ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                              : 'hover:bg-white/10'
+                          }`}
+                          title={sidebarCollapsed ? entity.displayName : undefined}
+                        >
+                          <Icon className="w-5 h-5 flex-shrink-0" />
+                          {!sidebarCollapsed && <span className="text-sm">{entity.displayName}</span>}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
@@ -179,25 +241,66 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           {/* Menu de navegação mobile */}
-          <nav className="flex-1 p-4 space-y-2">
-            {visibleMenuItems.map((item) => {
-              const Icon = item.icon
-              const isActive = location.pathname === item.path
-              
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            {/* Dashboard */}
+            <Link
+              to="/dashboard"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                location.pathname === '/dashboard'
+                  ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
+              <span>Dashboard</span>
+            </Link>
+
+            {/* Entidades agrupadas por categoria */}
+            {Object.entries(groupedEntities).map(([category, entities]) => {
+              const isExpanded = expandedCategories[category] !== false
+
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-white text-purple-700 font-semibold shadow-lg'
-                      : 'hover:bg-white/10'
-                  }`}
-                >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                  <span>{item.name}</span>
-                </Link>
+                <div key={category} className="space-y-1">
+                  {/* Cabeçalho da categoria */}
+                  <button
+                    onClick={() => toggleCategory(category)}
+                    className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <span>{category}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Itens da categoria */}
+                  {isExpanded && (
+                    <div className="space-y-1">
+                      {entities.map((entity) => {
+                        const Icon = entityIcons[entity.name] || Database
+                        const isActive = location.pathname === `/crud/${entity.name}`
+
+                        return (
+                          <Link
+                            key={entity.name}
+                            to={`/crud/${entity.name}`}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2.5 ml-2 rounded-lg transition-all ${
+                              isActive
+                                ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                                : 'hover:bg-white/10'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5 flex-shrink-0" />
+                            <span className="text-sm">{entity.displayName}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
             })}
           </nav>
