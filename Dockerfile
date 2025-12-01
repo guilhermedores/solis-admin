@@ -12,7 +12,11 @@ RUN npm install --production=false
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação Vite (skip TypeScript check para deployment rápido)
+# Build arguments para variáveis Vite (passadas do Digital Ocean)
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
+# Build da aplicação Vite (variáveis são embutidas no build)
 RUN npm run build -- --mode production || npm run build:vite || npx vite build
 
 # Stage de produção com Nginx
