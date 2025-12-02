@@ -33,20 +33,18 @@ services:
       - "host.docker.internal:host-gateway"
 
   # ===========================================================================
-  # Development Service (opcional - para desenvolvimento)
+  # Development Service (para desenvolvimento local)
   # ===========================================================================
   admin-dev:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: build
+      dockerfile: Dockerfile.dev
     container_name: solis-admin-dev
     ports:
       - "5173:5173"
     volumes:
       - .:/app
       - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0
     environment:
       - NODE_ENV=development
     networks:

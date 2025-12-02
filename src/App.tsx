@@ -14,6 +14,7 @@ import EntityPage from './components/DynamicCrud/EntityPage'
 // Components
 import PrivateRoute from './components/PrivateRoute'
 import Layout from './components/Layout'
+import TenantValidator from './components/TenantValidator'
 
 // Hooks
 import { useAuthInit } from './hooks/useAuthInit'
@@ -31,9 +32,6 @@ const queryClient = new QueryClient({
 })
 
 function AppRoutes() {
-  // Inicializa dados do usuário se houver token
-  useAuthInit()
-
   return (
     <Routes>
       {/* Rota de login */}
@@ -109,10 +107,15 @@ function AppRoutes() {
 }
 
 function App() {
+  // Inicializa dados do usuário se houver token (apenas uma vez)
+  useAuthInit()
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppRoutes />
+        <TenantValidator>
+          <AppRoutes />
+        </TenantValidator>
       </BrowserRouter>
       
       {/* Dev tools - só aparece em desenvolvimento */}

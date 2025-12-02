@@ -1,0 +1,21 @@
+# =============================================================================
+# Dockerfile para Desenvolvimento Local
+# =============================================================================
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm install
+
+# Copiar código fonte (incluindo .env.development)
+COPY . .
+
+# Expor porta do Vite
+EXPOSE 5173
+
+# Comando para iniciar em modo desenvolvimento
+CMD ["npm", "run", "dev"]

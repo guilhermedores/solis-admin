@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, getTenantFromUrl } from '../lib/api'
 import { useAuthStore } from '../stores/auth.store'
@@ -9,15 +9,38 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
-  const { setAuth, token } = useAuthStore()
+  const { setAuth } = useAuthStore()
+  const hasRedirected = useRef(false)
 
   // Redireciona se já estiver autenticado
+  // IMPORTANTE: Não incluir 'token' do Zustand nas dependências
+  // para evitar loop causado por mudanças de estado
   useEffect(() => {
-    const localToken = localStorage.getItem('auth-token')
-    if (token || localToken) {
-      navigate('/dashboard', { replace: true })
+    console.log('[Login] useEffect executado - hasRedirected:', hasRedirected.current)
+    
+    if (hasRedirected.current) {
+      console.log('[Login] Já redirecionou anteriormente, ignorando')
+      return
     }
-  }, [token, navigate])
+    
+    const localToken = localStorage.getItem('auth-token')
+    console.log('[Login] Token no localStorage:', !!localToken)
+    
+    if (localToken) {
+      hasRedirected.current = true
+      console.log('[Login] Token encontrado, aguardando 2 segundos antes de redirecionar...')
+      console.log('[Login] Verifique os logs acima!')
+      
+      // Delay maior para ver os logs
+      setTimeout(() => {
+        console.log('[Login] ===== REDIRECIONANDO PARA DASHBOARD AGORA =====')
+        navigate('/dashboard', { replace: true })
+      }, 2000)
+    } else {
+      console.log('[Login] Sem token, permanecendo na tela de login')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Executa apenas no mount
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

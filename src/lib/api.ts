@@ -14,7 +14,12 @@ export const getTenantFromUrl = (): string => {
   
   // Para desenvolvimento local (localhost ou 127.0.0.1)
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // Usa a variável de ambiente configurada em .env
+    // Tenta pegar do localStorage (setado pelo TenantValidator)
+    const devTenant = localStorage.getItem('dev-tenant')
+    if (devTenant) {
+      return devTenant
+    }
+    // Fallback para a variável de ambiente
     return DEV_TENANT
   }
   
