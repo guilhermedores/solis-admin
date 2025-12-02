@@ -40,7 +40,7 @@ export default function TenantValidator({ children }: TenantValidatorProps) {
       setLoading(true)
       console.log('[TenantValidator] Validando tenant no servidor...')
       // Chama endpoint público de validação de tenant
-      const response = await api.get(`/api/auth/validate-tenant/${tenant}`)
+      const response = await api.get(`/api/validate-tenant/${tenant}`)
       
       if (response.data.exists) {
         console.log('[TenantValidator] Tenant válido')
