@@ -31,7 +31,9 @@ export default function ReportPage() {
     return {
       ...metadata,
       columns: metadata.fields || metadata.columns || [],
-      filters: metadata.filters || []
+      filters: metadata.filters || [],
+      supportsExport: metadata.supportsExport !== false, // Default true se não especificado
+      supportsPagination: metadata.supportsPagination !== false, // Default true se não especificado
     }
   }, [metadata])
 
