@@ -110,7 +110,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Menu de navegação */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 h-0 min-h-0 p-4 space-y-2 overflow-y-auto">
           {/* Dashboard */}
           <Link
             to="/dashboard"
@@ -241,7 +241,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           {/* Menu de navegação mobile */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <nav className="p-4 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
             {/* Dashboard */}
             <Link
               to="/dashboard"
