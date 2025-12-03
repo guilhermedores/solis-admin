@@ -108,7 +108,9 @@ export default function EntityDetail() {
 
             // Se for booleano, mostrar ícone
             let renderedValue
-            if (field.dataType === 'boolean') {
+            const fieldType = field.fieldType || field.dataType
+            
+            if (fieldType === 'boolean') {
               renderedValue = displayValue ? (
                 <div className="flex items-center gap-2">
                   <Check className="text-green-600" size={20} />
@@ -121,7 +123,7 @@ export default function EntityDetail() {
                 </div>
               )
             } else {
-              renderedValue = formatFieldValue(displayValue, field.dataType)
+              renderedValue = formatFieldValue(displayValue, fieldType)
             }
 
             return (
@@ -159,12 +161,39 @@ function formatFieldValue(value: any, dataType: string): string {
   switch (dataType) {
     case 'boolean':
       return value ? 'Sim' : 'Não'
+    
     case 'date':
-      return new Date(value).toLocaleDateString('pt-BR')
+      try {
+        return new Date(value).toLocaleDateString('pt-BR')
+      } catch {
+        return String(value)
+      }
+    
     case 'datetime':
-      return new Date(value).toLocaleString('pt-BR')
+      try {
+        return new Date(value).toLocaleString('pt-BR')
+      } catch {
+        return String(value)
+      }
+    
+    case 'currency':
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(Number(value))
+    
     case 'decimal':
-      return typeof value === 'number' ? value.toFixed(2) : value
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(value))
+    
+    case 'number':
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(Number(value))
+    
     default:
       // Não exibir password
       if (String(value).includes('password') || String(value).length > 100) {

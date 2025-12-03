@@ -68,6 +68,9 @@ export default function EntityTable() {
     .filter((f) => f.showInList)
     .sort((a, b) => a.listOrder - b.formOrder)
 
+  // Debug: verificar tipos de dados
+  console.log('EntityTable - listFields:', listFields.map(f => ({ name: f.name, dataType: f.dataType })))
+
   const records = listData?.data || []
   const pagination = listData?.pagination
 
@@ -84,8 +87,11 @@ export default function EntityTable() {
       }
     }
     
+    // Usar fieldType se disponível, senão usar dataType
+    const type = field.fieldType || field.dataType
+    
     // Se for booleano, mostrar ícone
-    if (field.dataType === 'boolean') {
+    if (type === 'boolean') {
       return fieldValue ? (
         <Check className="text-green-600" size={18} />
       ) : (
@@ -93,7 +99,14 @@ export default function EntityTable() {
       )
     }
     
-    return formatFieldValue(fieldValue, field.dataType)
+    return formatFieldValue(fieldValue, type)
+  }
+
+  // Função para determinar alinhamento baseado no tipo
+  const getColumnAlignment = (field: any) => {
+    const type = field.fieldType || field.dataType
+    const numericTypes = ['number', 'decimal', 'currency']
+    return numericTypes.includes(type) ? 'text-right' : 'text-left'
   }
 
   return (
@@ -143,10 +156,10 @@ export default function EntityTable() {
                 {listFields.map((field) => (
                   <th
                     key={field.id}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 ${getColumnAlignment(field)}`}
                     onClick={() => handleSort(field.name)}
                   >
-                    <div className="flex items-center">
+                    <div className={`flex items-center ${getColumnAlignment(field) === 'text-right' ? 'justify-end' : ''}`}>
                       {field.displayName}
                       {orderBy === field.name && (
                         <span className="ml-2">{ascending ? '↑' : '↓'}</span>
@@ -176,7 +189,7 @@ export default function EntityTable() {
                 records.map((record) => (
                   <tr key={record.data.id} className="hover:bg-gray-50">
                     {listFields.map((field) => (
-                      <td key={field.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td key={field.id} className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${getColumnAlignment(field)}`}>
                         {getDisplayValue(record, field)}
                       </td>
                     ))}
@@ -305,12 +318,39 @@ function formatFieldValue(value: any, dataType: string): string {
   switch (dataType) {
     case 'boolean':
       return value ? 'Sim' : 'Não'
+    
     case 'date':
-      return new Date(value).toLocaleDateString('pt-BR')
+      try {
+        return new Date(value).toLocaleDateString('pt-BR')
+      } catch {
+        return String(value)
+      }
+    
     case 'datetime':
-      return new Date(value).toLocaleString('pt-BR')
+      try {
+        return new Date(value).toLocaleString('pt-BR')
+      } catch {
+        return String(value)
+      }
+    
+    case 'currency':
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(Number(value))
+    
     case 'decimal':
-      return typeof value === 'number' ? value.toFixed(2) : value
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(value))
+    
+    case 'number':
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(Number(value))
+    
     default:
       return String(value)
   }

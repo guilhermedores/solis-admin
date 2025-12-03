@@ -10,5 +10,7 @@ export function useEntityMetadata(entityName: string) {
       return response.data
     },
     enabled: !!entityName,
+    staleTime: 0, // Sempre buscar dados frescos
+    gcTime: 0, // Não manter em cache
   })
 }

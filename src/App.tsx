@@ -5,11 +5,15 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 // Pages
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import ReportsList from './pages/ReportsList'
 
 // Dynamic CRUD Components
 import EntityForm from './components/DynamicCrud/EntityForm'
 import EntityDetail from './components/DynamicCrud/EntityDetail'
 import EntityPage from './components/DynamicCrud/EntityPage'
+
+// Dynamic Reports Components
+import ReportPage from './components/DynamicReports/ReportPage'
 
 // Components
 import PrivateRoute from './components/PrivateRoute'
@@ -94,6 +98,32 @@ function AppRoutes() {
           <PrivateRoute>
             <Layout>
               <EntityPage />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Dynamic Reports - Rotas genéricas para todos os relatórios */}
+      
+      {/* Lista de relatórios */}
+      <Route 
+        path="/reports" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ReportsList />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Visualizar relatório específico */}
+      <Route 
+        path="/reports/:reportName" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ReportPage />
             </Layout>
           </PrivateRoute>
         } 

@@ -125,6 +125,20 @@ export default function Layout({ children }: LayoutProps) {
             {!sidebarCollapsed && <span>Dashboard</span>}
           </Link>
 
+          {/* Relatórios */}
+          <Link
+            to="/reports"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              location.pathname.startsWith('/reports')
+                ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                : 'hover:bg-white/10'
+            }`}
+            title={sidebarCollapsed ? 'Relatórios' : undefined}
+          >
+            <FileText className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && <span>Relatórios</span>}
+          </Link>
+
           {/* Loading state */}
           {loadingEntities && Object.keys(groupedEntities).length === 0 && (
             <div className="px-4 py-3 text-sm text-white/60">
@@ -254,6 +268,20 @@ export default function Layout({ children }: LayoutProps) {
             >
               <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
               <span>Dashboard</span>
+            </Link>
+
+            {/* Relatórios */}
+            <Link
+              to="/reports"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                location.pathname.startsWith('/reports')
+                  ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              <FileText className="w-5 h-5 flex-shrink-0" />
+              <span>Relatórios</span>
             </Link>
 
             {/* Entidades agrupadas por categoria */}

@@ -47,6 +47,7 @@ export interface Field {
   name: string
   displayName: string
   dataType: DataType
+  fieldType?: string  // Backend pode enviar fieldType como string livre
   isRequired: boolean
   isReadOnly: boolean
   showInList: boolean
