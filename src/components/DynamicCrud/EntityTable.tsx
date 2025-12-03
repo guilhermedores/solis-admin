@@ -68,9 +68,6 @@ export default function EntityTable() {
     .filter((f) => f.showInList)
     .sort((a, b) => a.listOrder - b.formOrder)
 
-  // Debug: verificar tipos de dados
-  console.log('EntityTable - listFields:', listFields.map(f => ({ name: f.name, dataType: f.dataType })))
-
   const records = listData?.data || []
   const pagination = listData?.pagination
 
@@ -90,8 +87,8 @@ export default function EntityTable() {
     // Usar fieldType se disponível, senão usar dataType
     const type = field.fieldType || field.dataType
     
-    // Se for booleano, mostrar ícone
-    if (type === 'boolean') {
+    // Se for booleano ou checkbox, mostrar ícone
+    if (type === 'boolean' || type === 'checkbox' || field.dataType === 'boolean') {
       return fieldValue ? (
         <Check className="text-green-600" size={18} />
       ) : (
