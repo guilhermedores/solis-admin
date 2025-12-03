@@ -1,4 +1,5 @@
 import { ReportColumn } from '../../types/reports'
+import { Check, X } from 'lucide-react'
 
 interface ReportTableProps {
   columns: ReportColumn[]
@@ -124,14 +125,35 @@ export default function ReportTable({ columns, data, onSort, sortBy, sortDirecti
           ) : (
             data.map((row, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50">
-                {columns.map((column) => (
-                  <td
-                    key={column.name}
-                    className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${getTextAlign(column)}`}
-                  >
-                    {formatValue(row[column.name], column)}
-                  </td>
-                ))}
+                {columns.map((column) => {
+                  const value = row[column.name]
+                  const type = (column.fieldType || column.type || 'string').toLowerCase()
+                  
+                  // Renderizar ícone para boolean
+                  if (type === 'boolean') {
+                    return (
+                      <td
+                        key={column.name}
+                        className={`px-6 py-4 whitespace-nowrap text-sm ${getTextAlign(column)}`}
+                      >
+                        {value ? (
+                          <Check className="text-green-600" size={18} />
+                        ) : (
+                          <X className="text-red-600" size={18} />
+                        )}
+                      </td>
+                    )
+                  }
+                  
+                  return (
+                    <td
+                      key={column.name}
+                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${getTextAlign(column)}`}
+                    >
+                      {formatValue(value, column)}
+                    </td>
+                  )
+                })}
               </tr>
             ))
           )}
