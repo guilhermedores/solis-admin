@@ -183,7 +183,7 @@ export default function SaleDetails() {
       </div>
 
       {/* Itens da Venda */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white rounded-xl shadow-md overflow-visible">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
             <Package className="w-5 h-5 text-purple-600" />
@@ -191,7 +191,7 @@ export default function SaleDetails() {
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -199,7 +199,7 @@ export default function SaleDetails() {
                   Produto
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quantidade
+                  Qtd
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Preço Unit.
@@ -218,36 +218,46 @@ export default function SaleDetails() {
             <tbody className="bg-white divide-y divide-gray-200">
               {sale.items.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-3">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{item.description}</p>
-                      <p className="text-xs text-gray-500 font-mono">SKU: {item.sku}</p>
+                      <p className="text-sm font-medium text-gray-900">{item.description}</p>
+                      {item.sku && <p className="text-xs text-gray-500 mt-0.5">SKU: {item.sku}</p>}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-sm font-semibold text-gray-900">{item.quantity}</span>
+                  <td className="px-6 py-3 text-center">
+                    <span className="text-sm text-gray-900">
+                      {item.quantity}{item.unitOfMeasure && ` ${item.unitOfMeasure}`}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-sm text-gray-900">
+                  <td className="px-6 py-3 text-right text-sm text-gray-900">
                     {formatCurrency(item.unitPrice)}
                   </td>
-                  <td className="px-6 py-4 text-right text-sm text-orange-600 font-semibold">
+                  <td className="px-6 py-3 text-right text-sm text-orange-600">
                     {item.discountAmount > 0 ? `-${formatCurrency(item.discountAmount)}` : '-'}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="text-sm font-semibold text-blue-600">
-                      +{formatCurrency(item.taxAmount)}
-                    </div>
-                    {item.taxes.length > 0 && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {item.taxes.map((tax, idx) => (
-                          <div key={tax.id}>
-                            {tax.taxTypeCode}: {tax.rate}% = {formatCurrency(tax.amount)}
+                  <td className="px-6 py-3 text-right relative overflow-visible">
+                    {item.taxAmount > 0 ? (
+                      <div className="relative group inline-block">
+                        <span className="text-sm text-blue-600 cursor-help">
+                          +{formatCurrency(item.taxAmount)}
+                        </span>
+                        {item.taxes.length > 0 && (
+                          <div className="fixed hidden group-hover:block w-56 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-2xl z-50 -translate-x-full -translate-y-full pointer-events-none" style={{ marginLeft: '-12px', marginTop: '-8px' }}>
+                            <div className="font-semibold mb-2 border-b border-gray-700 pb-1.5">Detalhamento de Impostos</div>
+                            {item.taxes.map((tax) => (
+                              <div key={tax.id} className="flex justify-between py-1">
+                                <span>{tax.taxTypeCode} ({tax.rate}%)</span>
+                                <span className="font-medium">{formatCurrency(tax.amount)}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
+                    ) : (
+                      <span className="text-sm text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
+                  <td className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
                     {formatCurrency(item.total)}
                   </td>
                 </tr>

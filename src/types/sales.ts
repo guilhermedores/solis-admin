@@ -21,6 +21,7 @@ export interface SaleItem {
   productId: string
   sku: string
   description: string
+  unitOfMeasure: string | null
   quantity: number
   unitPrice: number
   discountAmount: number
