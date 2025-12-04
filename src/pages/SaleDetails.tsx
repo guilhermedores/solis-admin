@@ -151,17 +151,6 @@ export default function SaleDetails() {
             </div>
           </div>
         </div>
-
-        {/* Informações Gerais */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6 pt-6 border-t border-gray-200">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">
-              <Calendar className="w-4 h-4 inline mr-1" />
-              Data/Hora
-            </p>
-            <p className="font-semibold text-gray-800">{formatDateTime(sale.saleDateTime)}</p>
-          </div>
-        </div>
       </div>
 
       {/* Resumo Financeiro */}
