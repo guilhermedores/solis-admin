@@ -125,7 +125,9 @@ export default function SaleDetails() {
               <ShoppingCart className="w-8 h-8 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Detalhes da Venda</h1>
+              <h1 className="text-2xl font-bold text-gray-800">
+                Pedido #{sale.orderNumber}
+              </h1>
               <p className="text-sm text-gray-600 mt-1">
                 {formatDateTime(sale.saleDateTime)}
               </p>

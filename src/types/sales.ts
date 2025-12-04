@@ -54,6 +54,7 @@ export interface SaleCancellation {
 
 export interface Sale {
   id: string
+  orderNumber: number
   clientSaleId: string | null
   storeId: string
   posId: string | null

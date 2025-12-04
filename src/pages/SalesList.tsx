@@ -220,6 +220,9 @@ export default function SalesList() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nº Pedido
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Data/Hora
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -250,6 +253,9 @@ export default function SalesList() {
                   ) : (
                     data.data.map((sale) => (
                       <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                          {sale.orderNumber != null ? sale.orderNumber.toString().padStart(8, '0') : '-'}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatDateTime(sale.saleDateTime)}
                         </td>
