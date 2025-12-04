@@ -6,6 +6,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ReportsList from './pages/ReportsList'
+import SalesList from './pages/SalesList'
+import SaleDetails from './pages/SaleDetails'
 
 // Dynamic CRUD Components
 import EntityForm from './components/DynamicCrud/EntityForm'
@@ -124,6 +126,32 @@ function AppRoutes() {
           <PrivateRoute>
             <Layout>
               <ReportPage />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Sales - Rotas para consulta de vendas */}
+      
+      {/* Lista de vendas */}
+      <Route 
+        path="/sales" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <SalesList />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Detalhes da venda */}
+      <Route 
+        path="/sales/:id" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <SaleDetails />
             </Layout>
           </PrivateRoute>
         } 

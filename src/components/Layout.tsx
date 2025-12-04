@@ -12,7 +12,8 @@ import {
   Database,
   Building,
   FileText,
-  Shield
+  Shield,
+  ShoppingCart
 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
 import { useEntities } from '../hooks/useEntities'
@@ -137,6 +138,20 @@ export default function Layout({ children }: LayoutProps) {
           >
             <FileText className="w-5 h-5 flex-shrink-0" />
             {!sidebarCollapsed && <span>Relatórios</span>}
+          </Link>
+
+          {/* Vendas */}
+          <Link
+            to="/sales"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              location.pathname.startsWith('/sales')
+                ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                : 'hover:bg-white/10'
+            }`}
+            title={sidebarCollapsed ? 'Vendas' : undefined}
+          >
+            <ShoppingCart className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && <span>Vendas</span>}
           </Link>
 
           {/* Loading state */}
@@ -282,6 +297,20 @@ export default function Layout({ children }: LayoutProps) {
             >
               <FileText className="w-5 h-5 flex-shrink-0" />
               <span>Relatórios</span>
+            </Link>
+
+            {/* Vendas */}
+            <Link
+              to="/sales"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                location.pathname.startsWith('/sales')
+                  ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              <ShoppingCart className="w-5 h-5 flex-shrink-0" />
+              <span>Vendas</span>
             </Link>
 
             {/* Entidades agrupadas por categoria */}
