@@ -6,8 +6,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ReportsList from './pages/ReportsList'
+import CadastrosList from './pages/CadastrosList'
 import SalesList from './pages/SalesList'
 import SaleDetails from './pages/SaleDetails'
+import AgentTokens from './pages/AgentTokens'
 
 // Dynamic CRUD Components
 import EntityForm from './components/DynamicCrud/EntityForm'
@@ -50,6 +52,18 @@ function AppRoutes() {
           <PrivateRoute>
             <Layout>
               <Dashboard />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Lista de cadastros */}
+      <Route 
+        path="/cadastros" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <CadastrosList />
             </Layout>
           </PrivateRoute>
         } 
@@ -152,6 +166,18 @@ function AppRoutes() {
           <PrivateRoute>
             <Layout>
               <SaleDetails />
+            </Layout>
+          </PrivateRoute>
+        } 
+      />
+      
+      {/* Agent Tokens - Geração de tokens para agentes PDV */}
+      <Route 
+        path="/agent-tokens" 
+        element={
+          <PrivateRoute>
+            <Layout>
+              <AgentTokens />
             </Layout>
           </PrivateRoute>
         } 

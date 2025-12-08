@@ -1,40 +1,24 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, 
-  Users, 
   Menu, 
   X, 
   LogOut,
   ChevronLeft,
-  ChevronDown,
-  ChevronRight,
-  Database,
-  Building,
   FileText,
-  Shield,
-  ShoppingCart
+  ShoppingCart,
+  Database
 } from 'lucide-react'
 import { useAuthStore } from '../stores/auth.store'
-import { useEntities } from '../hooks/useEntities'
-import { Entity } from '../types/entities'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
-// Mapear ícones das entidades (fora do componente para evitar recriação)
-const entityIcons: Record<string, any> = {
-  user: Users,
-  company: Building,
-  tax_regime: FileText,
-  special_tax_regime: Shield,
-}
-
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
   const location = useLocation()
   const navigate = useNavigate()
   
@@ -45,44 +29,6 @@ export default function Layout({ children }: LayoutProps) {
   const handleLogout = () => {
     clearAuth()
     navigate('/login')
-  }
-
-  // Buscar entidades disponíveis
-  const { data: entitiesResponse, isLoading: loadingEntities, error: entitiesError } = useEntities()
-
-  // Agrupar entidades por categoria
-  const groupedEntities = useMemo(() => {
-    if (!entitiesResponse?.entities || !Array.isArray(entitiesResponse.entities)) {
-      return {}
-    }
-
-    const grouped: Record<string, Entity[]> = {}
-    
-    entitiesResponse.entities.forEach((entity) => {
-      const category = entity.category || 'Outros'
-      if (!grouped[category]) {
-        grouped[category] = []
-      }
-      grouped[category].push(entity)
-    })
-
-    // Ordenar categorias alfabeticamente
-    const sortedGrouped: Record<string, Entity[]> = {}
-    Object.keys(grouped)
-      .sort()
-      .forEach((key) => {
-        sortedGrouped[key] = grouped[key]
-      })
-
-    return sortedGrouped
-  }, [entitiesResponse])
-
-  // Toggle categoria
-  const toggleCategory = (category: string) => {
-    setExpandedCategories((prev) => ({
-      ...prev,
-      [category]: !prev[category],
-    }))
   }
 
   return (
@@ -140,6 +86,20 @@ export default function Layout({ children }: LayoutProps) {
             {!sidebarCollapsed && <span>Relatórios</span>}
           </Link>
 
+          {/* Cadastros */}
+          <Link
+            to="/cadastros"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              location.pathname.startsWith('/cadastros') || location.pathname.startsWith('/crud') || location.pathname === '/agent-tokens'
+                ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                : 'hover:bg-white/10'
+            }`}
+            title={sidebarCollapsed ? 'Cadastros' : undefined}
+          >
+            <Database className="w-5 h-5 flex-shrink-0" />
+            {!sidebarCollapsed && <span>Cadastros</span>}
+          </Link>
+
           {/* Vendas */}
           <Link
             to="/sales"
@@ -153,74 +113,6 @@ export default function Layout({ children }: LayoutProps) {
             <ShoppingCart className="w-5 h-5 flex-shrink-0" />
             {!sidebarCollapsed && <span>Vendas</span>}
           </Link>
-
-          {/* Loading state */}
-          {loadingEntities && Object.keys(groupedEntities).length === 0 && (
-            <div className="px-4 py-3 text-sm text-white/60">
-              Carregando menu...
-            </div>
-          )}
-
-          {/* Error state */}
-          {entitiesError && Object.keys(groupedEntities).length === 0 && (
-            <div className="px-4 py-3 text-xs text-red-300">
-              ⚠️ API não disponível
-            </div>
-          )}
-
-          {/* Entidades agrupadas por categoria */}
-          {Object.entries(groupedEntities).map(([category, entities]) => {
-            const isExpanded = expandedCategories[category] !== false // Expandido por padrão
-
-            return (
-              <div key={category} className="space-y-1">
-                {/* Cabeçalho da categoria */}
-                {!sidebarCollapsed ? (
-                  <button
-                    onClick={() => toggleCategory(category)}
-                    className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                  >
-                    <span>{category}</span>
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-                ) : (
-                  <div className="h-px bg-white/20 my-2" />
-                )}
-
-                {/* Itens da categoria */}
-                {(isExpanded || sidebarCollapsed) && (
-                  <div className="space-y-1">
-                    {entities.map((entity) => {
-                      const Icon = entityIcons[entity.name] || Database
-                      const isActive = location.pathname === `/crud/${entity.name}`
-
-                      return (
-                        <Link
-                          key={entity.name}
-                          to={`/crud/${entity.name}`}
-                          className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
-                            sidebarCollapsed ? '' : 'ml-2'
-                          } ${
-                            isActive
-                              ? 'bg-white text-purple-700 font-semibold shadow-lg'
-                              : 'hover:bg-white/10'
-                          }`}
-                          title={sidebarCollapsed ? entity.displayName : undefined}
-                        >
-                          <Icon className="w-5 h-5 flex-shrink-0" />
-                          {!sidebarCollapsed && <span className="text-sm">{entity.displayName}</span>}
-                        </Link>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )
-          })}
         </nav>
 
         {/* User info e logout */}
@@ -299,6 +191,20 @@ export default function Layout({ children }: LayoutProps) {
               <span>Relatórios</span>
             </Link>
 
+            {/* Cadastros */}
+            <Link
+              to="/cadastros"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                location.pathname.startsWith('/cadastros') || location.pathname.startsWith('/crud') || location.pathname === '/agent-tokens'
+                  ? 'bg-white text-purple-700 font-semibold shadow-lg'
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              <Database className="w-5 h-5 flex-shrink-0" />
+              <span>Cadastros</span>
+            </Link>
+
             {/* Vendas */}
             <Link
               to="/sales"
@@ -312,54 +218,6 @@ export default function Layout({ children }: LayoutProps) {
               <ShoppingCart className="w-5 h-5 flex-shrink-0" />
               <span>Vendas</span>
             </Link>
-
-            {/* Entidades agrupadas por categoria */}
-            {Object.entries(groupedEntities).map(([category, entities]) => {
-              const isExpanded = expandedCategories[category] !== false
-
-              return (
-                <div key={category} className="space-y-1">
-                  {/* Cabeçalho da categoria */}
-                  <button
-                    onClick={() => toggleCategory(category)}
-                    className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                  >
-                    <span>{category}</span>
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-
-                  {/* Itens da categoria */}
-                  {isExpanded && (
-                    <div className="space-y-1">
-                      {entities.map((entity) => {
-                        const Icon = entityIcons[entity.name] || Database
-                        const isActive = location.pathname === `/crud/${entity.name}`
-
-                        return (
-                          <Link
-                            key={entity.name}
-                            to={`/crud/${entity.name}`}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-4 py-2.5 ml-2 rounded-lg transition-all ${
-                              isActive
-                                ? 'bg-white text-purple-700 font-semibold shadow-lg'
-                                : 'hover:bg-white/10'
-                            }`}
-                          >
-                            <Icon className="w-5 h-5 flex-shrink-0" />
-                            <span className="text-sm">{entity.displayName}</span>
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
           </nav>
 
           {/* User info e logout mobile */}
